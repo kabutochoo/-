@@ -87,6 +87,10 @@ Xcode Cloudで`node_modules/@capacitor/share`等が存在しないというエ�
 
 実機へのインストールとクラウドでのArchiveは別の操作です。App Store Connect/TestFlightへ送るには、Xcode CloudワークフローにArchiveアクションと対象の配信設定が必要です。ローカルMacのProduct → Archive → Organizerからのアップロードでも進められます。
 
+## GitHubのMacビルド確認
+
+`.github/workflows/ios-build.yml`は`main`の変更または手動実行でMacランナーを使い、iPhone用の署名なしArchiveをビルドします。GitHubのActionsタブの「iPhone archive check」で結果を確認できます。成功時は署名なしArchive、失敗時も取得できたビルドログを7日間保存します。このArchiveは署名済みIPAではなく、TestFlight/App Storeへアップロードしたことを意味しません。Appleアカウントや証明書は使用しません。配信には上記のXcode Organizerまたは設定済みのXcode Cloudでの署名・配信が必要です。
+
 ## 5. ストア情報を入力して審査へ
 
 説明文の案は `release/STORE_LISTING_JA.md` を参照。以下はアカウント所有者が最終確認して入力します。

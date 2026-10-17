@@ -1,0 +1,91 @@
+name: iPhone archive check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.js'
+      - '*.html'
+      - '*.css'
+      - 'package*.json'
+      - 'capacitor.config.json'
+      - 'scripts/**'
+      - 'ios/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: iphone-archive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  archive:
+    name: Build unsigned iPhone archive
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Select installed stable Xcode 26 or newer
+        shell: bash
+        run: |
+          set -euo pipefail
+          developer_dir=$(python3 - <<'PY'
+          import glob, plistlib, re
+          choices=[]
+          for path in glob.glob('/Applications/Xcode*.app'):
+              if 'beta' in path.lower():
+                  continue
+              with open(path+'/Contents/Info.plist','rb') as f:
+                  version=plistlib.load(f)['CFBundleShortVersionString']
+              numbers=tuple(int(n) for n in re.findall(r'\d+',version))
+              if numbers and numbers[0]>=26:
+                  choices.append((numbers,path+'/Contents/Developer'))
+          if not choices:
+              raise SystemExit('Xcode 26+ is not installed on this runner.')
+          print(max(choices)[1])
+          PY
+          )
+          sudo xcode-select --switch "$developer_dir"
+          xcodebuild -version
+      - name: Install and generate native dependencies
+        run: bash ios/App/ci_scripts/ci_post_clone.sh
+      - name: Run model and storage tests
+        run: npm test
+      - name: Archive for iPhone without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/RUNLOO-unsigned.xcarchive" \
+            -resultBundlePath "$RUNNER_TEMP/RUNLOO-build.xcresult" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            | tee "$RUNNER_TEMP/RUNLOO-build.log"
+      - name: Retain build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RUNLOO-build-diagnostics
+          path: |
+            ${{ runner.temp }}/RUNLOO-build.log
+            ${{ runner.temp }}/RUNLOO-build.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Package unsigned archive
+        run: ditto -c -k --keepParent "$RUNNER_TEMP/RUNLOO-unsigned.xcarchive" "$RUNNER_TEMP/RUNLOO-unsigned.zip"
+      - name: Retain unsigned archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: RUNLOO-unsigned-iPhone-archive
+          path: ${{ runner.temp }}/RUNLOO-unsigned.zip
+          retention-days: 7
