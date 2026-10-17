@@ -1,0 +1,9 @@
+{
+  "appId": "jp.runloo.kokyo",
+  "appName": "皇居RUNLOO",
+  "webDir": "dist",
+  "ios": {
+    "backgroundColor": "#f5f4ee",
+    "contentInset": "never"
+  }
+}

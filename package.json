@@ -1,1 +1,32 @@
-{"name":"kokyo-runru","version":"0.1.0","private":true,"scripts":{"start":"python3 -m http.server 3000 --bind 0.0.0.0","test":"node --test tests/*.test.js"},"type":"module"}
+{
+  "name": "kokyo-runloo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 3000 --bind 0.0.0.0",
+    "test": "node --test tests/*.test.js",
+    "build:ios": "node scripts/build-ios.mjs",
+    "ios:sync": "npm run build:ios && cap sync ios",
+    "ios:open": "cap open ios"
+  },
+  "type": "module",
+  "dependencies": {
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/preferences": "8.0.1",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "esbuild": "0.28.2"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
+  }
+}
