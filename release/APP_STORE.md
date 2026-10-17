@@ -79,6 +79,14 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App \
 4. OrganizerでValidate App → Distribute App → App Store Connectへアップロード。
 5. 処理が終わったらTestFlightの内部テスターとしてご自身を追加し、iPhoneのTestFlightアプリでインストールして同じ確認を行う。外部テスターへ配る場合はAppleのベータ審査が必要になることがあります。
 
+## Xcode Cloudを使う場合
+
+`ios/App/ci_scripts/ci_post_clone.sh`を追加しています。Xcode Cloudはチェックアウト後、Swift Package Managerによる依存解決より前にこのスクリプトを実行します。Node.js 22以降がなければHomebrewでNode.js 24を導入し、ロックファイルに従って`npm ci --include=dev`、`npm run ios:sync`を行います。`node_modules`と同梱WebアセットはGit管理しません。
+
+Xcode Cloudで`node_modules/@capacitor/share`等が存在しないというエラーが出た場合は、このフックを含む最新の`main`コミットを対象に**新しいビルド**を開始してください。古いコミットのRebuildでは修正が含まれません。ビルド詳細のCommitが最新か確認し、ログに`RUNLOO: native dependencies and bundled web assets are ready.`が出ることを確認します。
+
+実機へのインストールとクラウドでのArchiveは別の操作です。App Store Connect/TestFlightへ送るには、Xcode CloudワークフローにArchiveアクションと対象の配信設定が必要です。ローカルMacのProduct → Archive → Organizerからのアップロードでも進められます。
+
 ## 5. ストア情報を入力して審査へ
 
 説明文の案は `release/STORE_LISTING_JA.md` を参照。以下はアカウント所有者が最終確認して入力します。
