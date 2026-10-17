@@ -71,6 +71,19 @@ xcodebuild -project ios/App/App.xcodeproj -scheme App \
 
 タイマーは開始時刻との差で経過時間を再計算し、OSから常時バックグラウンド実行の許可を取得する方式ではありません。端末時計を手動変更すると影響を受けます。表示の百分の一秒は競技用計測精度の保証ではありません。再起動・ロック後の挙動は実機で必ず確認してください。
 
+## Macからまとめてアップロードする
+
+App Store Connectでアプリを作成し、Xcodeで開発チームの選択と実機動作確認まで済んでいる場合は、次のスクリプトでも署名付きArchiveの作成とアップロードを行えます。Xcodeにログイン済みのアカウント・キーチェーンを使い、パスワードやAPI秘密鍵をコードへ入力する必要はありません。
+
+```sh
+# 既存チェックアウトの最新コードを取得した後、Macで実行
+bash scripts/upload-ios.sh
+```
+
+Release設定のTeamを読み取り、未設定なら送信せず停止します。依存導入・テスト・Archive・App Store Connectへのアップロードを順に行い、失敗時は次の工程へ進みません。ログとArchiveはMacの一時ディレクトリに保持し、場所を実行時に表示します。Xcodeのアカウント認証やキーチェーンの確認画面が出た場合はMac上で対応してください。成功してもApple側の処理完了はTestFlightで確認が必要です。審査提出や一般公開は行いません。
+
+このスクリプトの実際の署名・アップロードは所有者のMacで実施する必要があります。クラウド環境にはAppleへの認証接続がないため、GitHubの署名なしArchive成功と、Appleへのアップロード成功は別です。
+
 ## 4. App Store ConnectとTestFlight
 
 1. [App Store Connect](https://appstoreconnect.apple.com/)で契約・メンバーシップが有効であることを確認。
